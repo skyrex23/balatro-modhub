@@ -1,0 +1,6 @@
+# Local configuration overrides
+config/balatro.local.env
+
+# Temporary files
+*.tmp
+.tmp/

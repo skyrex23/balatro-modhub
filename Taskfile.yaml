@@ -1,0 +1,41 @@
+version: "3"
+
+includes:
+  mods:
+    taskfile: ./taskfiles/mods.yaml
+  loader:
+    taskfile: ./taskfiles/loader.yaml
+
+tasks:
+  default:
+    desc: List the available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  setup:
+    desc: Install the modding stack (Lovely + Steamodded) and sync the mods
+    cmds:
+      - task: loader:install
+      - task: mods:sync
+
+  doctor:
+    desc: Check the local environment (dependencies, paths, modding stack)
+    cmds:
+      - bash scripts/doctor.sh
+
+  status:
+    desc: Show the state of the collection and of the modding stack
+    cmds:
+      - bash scripts/mods.sh list
+      - bash scripts/loader.sh status
+
+  run:
+    desc: Launch Balatro through Steam
+    cmds:
+      - steam steam://rungameid/2379780
+
+  logs:
+    desc: Show the log files of the modding stack (task logs -- --follow to follow them)
+    cmds:
+      - bash scripts/logs.sh

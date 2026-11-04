@@ -1,0 +1,61 @@
+version: "3"
+
+vars:
+  MOD_NAME: '{{if .CLI_ARGS}}{{.CLI_ARGS}}{{else}}{{.mod_name | default ""}}{{end}}'
+  MOD_ARGS: "{{.CLI_ARGS}}"
+
+tasks:
+  default:
+    desc: List the mods of the collection
+    cmds:
+      - bash scripts/mods.sh list
+
+  list:
+    desc: List the mods of the collection with their state
+    cmds:
+      - bash scripts/mods.sh list
+
+  info:
+    desc: Show the details of a mod (task mods:info -- <name>)
+    cmds:
+      - bash scripts/mods.sh info {{.MOD_NAME}}
+
+  enable:
+    desc: Enable a mod (task mods:enable -- <name>)
+    cmds:
+      - bash scripts/mods.sh enable {{.MOD_NAME}}
+
+  disable:
+    desc: Disable a mod (task mods:disable -- <name>)
+    cmds:
+      - bash scripts/mods.sh disable {{.MOD_NAME}}
+
+  toggle:
+    desc: Enable or disable a mod (task mods:toggle -- <name>)
+    cmds:
+      - bash scripts/mods.sh toggle {{.MOD_NAME}}
+
+  sync:
+    desc: Apply the enabled state of the manifest to the Balatro Mods folder
+    cmds:
+      - bash scripts/mods.sh sync
+
+  update:
+    desc: Update the mods from their upstream repositories (task mods:update -- [name...])
+    cmds:
+      - bash scripts/mods.sh update {{.MOD_ARGS}}
+
+  add:
+    desc: Add a mod as a submodule (task mods:add -- <name> <repo> [path] [branch] [description])
+    cmds:
+      - bash scripts/mods.sh add {{.MOD_ARGS}}
+
+  remove:
+    desc: Remove a mod from the collection (task mods:remove -- <name>)
+    cmds:
+      - bash scripts/mods.sh remove {{.MOD_NAME}}
+
+  path:
+    desc: Print the local path of a mod (task mods:path -- <name>)
+    cmds:
+      - bash scripts/mods.sh path {{.MOD_NAME}}

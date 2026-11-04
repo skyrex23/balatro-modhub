@@ -1,0 +1,13 @@
+{
+  "mods": [
+    {
+      "name": "first-round-joker",
+      "repo": "https://github.com/LnxFCA/balatro-mods",
+      "checkout": "first-round-joker",
+      "path": "first-round-joker",
+      "branch": "main",
+      "enabled": true,
+      "description": "Adds the standard jokers to the first round of every ante"
+    }
+  ]
+}

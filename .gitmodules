@@ -1,0 +1,4 @@
+[submodule "mods/first-round-joker"]
+	path = mods/first-round-joker
+	url = https://github.com/LnxFCA/balatro-mods
+	branch = main

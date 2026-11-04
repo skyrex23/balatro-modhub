@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Show the state of the modding stack
+    cmds:
+      - bash scripts/loader.sh status
+
+  install:
+    desc: Install Lovely Injector and Steamodded (task loader:install -- --force to reinstall)
+    cmds:
+      - bash scripts/loader.sh install {{.CLI_ARGS}}
+
+  update:
+    desc: Update Lovely Injector and Steamodded
+    cmds:
+      - bash scripts/loader.sh update
+
+  uninstall:
+    desc: Remove Lovely Injector and Steamodded
+    cmds:
+      - bash scripts/loader.sh uninstall
+
+  status:
+    desc: Show the state of the modding stack
+    cmds:
+      - bash scripts/loader.sh status
