@@ -249,9 +249,14 @@ mod_checkout_dir() {
 mod_source_dir() {
 	local -r name="$1"
 	local -r raw_path="$(manifest_field "$name" "path")"
-	local -r subpath="${raw_path:-.}"
+	local -r checkout="$(mod_checkout_dir "$name")"
 
-	printf '%s' "$(mod_checkout_dir "$name")/$subpath"
+	if [[ -z "$raw_path" || "$raw_path" == "." ]]; then
+		printf '%s' "$checkout"
+		return
+	fi
+
+	printf '%s' "$checkout/$raw_path"
 }
 
 mod_target_dir() {

@@ -25,6 +25,7 @@ Commands:
   update [name...]         Update the mods from their upstream repositories
   add <name> <repo> [path] [branch] [description]
                            Add a mod as a git submodule and register it in the manifest
+                           (the description takes the rest of the arguments)
   remove <name>            Remove a mod from the collection
   path <name>              Print the local path of a mod
 EOF
@@ -208,10 +209,10 @@ cmd_sync() {
 
 	log_info ""
 	log_info "Foreign entries in $BALATRO_MODS_DIR (not managed by the collection):"
-	local entry found=false
+	local entry base found=false
 	for entry in "$BALATRO_MODS_DIR"/*; do
 		[[ -e "$entry" ]] || continue
-		local -r base="$(basename "$entry")"
+		base="$(basename "$entry")"
 		[[ "$base" == "smods" ]] && continue
 		manifest_exists "$base" && continue
 		log_info "  - $base"
@@ -262,7 +263,7 @@ cmd_add() {
 	local -r repo="${2:-}"
 	local -r path="${3:-.}"
 	local -r branch="${4:-}"
-	local -r description="${5:-}"
+	local -r description="${*:5}"
 
 	[[ -n "$name" ]] || usage_error "Missing mod name"
 	[[ -n "$repo" ]] || usage_error "Missing repository url"
