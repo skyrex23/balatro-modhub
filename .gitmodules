@@ -1,4 +1,28 @@
 [submodule "mods/first-round-joker"]
 	path = mods/first-round-joker
 	url = https://github.com/LnxFCA/balatro-mods
+	branch = release
+[submodule "mods/jokerdisplay"]
+	path = mods/jokerdisplay
+	url = https://github.com/nh6574/JokerDisplay
+	branch = stable
+[submodule "mods/cartomancer"]
+	path = mods/cartomancer
+	url = https://github.com/stupxd/Cartomancer
+	branch = main
+[submodule "mods/handy"]
+	path = mods/handy
+	url = https://github.com/SleepyG11/HandyBalatro
+	branch = main
+[submodule "mods/cardsleeves"]
+	path = mods/cardsleeves
+	url = https://github.com/larswijn/CardSleeves
+	branch = main
+[submodule "mods/amulet"]
+	path = mods/amulet
+	url = https://github.com/frostice482/amulet
+	branch = main
+[submodule "mods/cryptid"]
+	path = mods/cryptid
+	url = https://github.com/SpectralPack/Cryptid
 	branch = main

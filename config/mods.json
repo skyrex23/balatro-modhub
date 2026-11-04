@@ -5,9 +5,72 @@
       "repo": "https://github.com/LnxFCA/balatro-mods",
       "checkout": "first-round-joker",
       "path": "first-round-joker",
-      "branch": "main",
+      "branch": "release",
       "enabled": true,
       "description": "Adds the standard jokers to the first round of every ante"
+    },
+    {
+      "name": "jokerdisplay",
+      "repo": "https://github.com/nh6574/JokerDisplay",
+      "checkout": "jokerdisplay",
+      "path": ".",
+      "branch": "stable",
+      "enabled": true,
+      "description": "Shows hand and joker breakdowns"
+    },
+    {
+      "name": "cartomancer",
+      "repo": "https://github.com/stupxd/Cartomancer",
+      "checkout": "cartomancer",
+      "path": ".",
+      "branch": "main",
+      "enabled": true,
+      "description": "Deck and UI quality of life"
+    },
+    {
+      "name": "handy",
+      "repo": "https://github.com/SleepyG11/HandyBalatro",
+      "checkout": "handy",
+      "path": ".",
+      "branch": "main",
+      "enabled": true,
+      "description": "Drag to select cards and extra keybinds"
+    },
+    {
+      "name": "cardsleeves",
+      "repo": "https://github.com/larswijn/CardSleeves",
+      "checkout": "cardsleeves",
+      "path": ".",
+      "branch": "main",
+      "enabled": true,
+      "description": "Card sleeves"
+    },
+    {
+      "name": "amulet",
+      "repo": "https://github.com/frostice482/amulet",
+      "checkout": "amulet",
+      "path": ".",
+      "branch": "main",
+      "enabled": true,
+      "description": "Shared library required by other mods"
+    },
+    {
+      "name": "cryptid",
+      "repo": "https://github.com/SpectralPack/Cryptid",
+      "checkout": "cryptid",
+      "path": ".",
+      "branch": "main",
+      "enabled": true,
+      "description": "Unbalanced content overhaul with new jokers, bosses and challenges"
+    },
+    {
+      "name": "lnxfca-common",
+      "repo": "https://github.com/LnxFCA/balatro-mods",
+      "checkout": "first-round-joker",
+      "path": "common",
+      "branch": "release",
+      "enabled": true,
+      "description": "Shared code required by the LnxFCA mods"
     }
   ]
 }
