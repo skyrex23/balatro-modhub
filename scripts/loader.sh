@@ -15,6 +15,17 @@ source "$SCRIPT_DIR/lib/common.sh"
 LOVELY_REPO="ethangreen-dev/lovely-injector"
 STEAMODDED_REPO="https://github.com/Steamodded/smods.git"
 
+TMP_DIR=""
+
+cleanup() {
+	if [[ -n "$TMP_DIR" && -d "$TMP_DIR" ]]; then
+		rm -rf "$TMP_DIR"
+	fi
+	return 0
+}
+
+trap cleanup EXIT
+
 read -r -d '' USAGE << EOF || true
 Usage: $INVOKER <command> [arguments]
 
@@ -69,14 +80,13 @@ install_lovely() {
 	local -r release_json="$(curl -fsSL "https://api.github.com/repos/$LOVELY_REPO/releases/latest")"
 	local -r url="$(lovely_release_url "$release_json")" || log_critical "Could not find a Windows Lovely release"
 
-	local -r tmp_dir="$(mktemp -d)"
-	trap 'rm -rf "$tmp_dir"' EXIT
+	TMP_DIR="$(mktemp -d)"
 
 	log_info "  $url"
-	curl -fsSL "$url" -o "$tmp_dir/lovely.zip"
-	unzip -o -q "$tmp_dir/lovely.zip" -d "$tmp_dir/extracted"
+	curl -fsSL "$url" -o "$TMP_DIR/lovely.zip"
+	unzip -o -q "$TMP_DIR/lovely.zip" -d "$TMP_DIR/extracted"
 
-	local -r injector="$(find "$tmp_dir/extracted" -maxdepth 3 -type f \( -name "winmm.dll" -o -name "version.dll" \) | head -n 1)"
+	local -r injector="$(find "$TMP_DIR/extracted" -maxdepth 3 -type f \( -name "winmm.dll" -o -name "version.dll" \) | head -n 1)"
 	[[ -n "$injector" ]] || log_critical "No injector dll found in the Lovely archive"
 
 	cp -f "$injector" "$game_dir/$(basename "$injector")"
