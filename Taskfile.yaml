@@ -5,6 +5,8 @@ includes:
     taskfile: ./taskfiles/mods.yaml
   loader:
     taskfile: ./taskfiles/loader.yaml
+  steam:
+    taskfile: ./taskfiles/steam.yaml
 
 tasks:
   default:
@@ -17,6 +19,8 @@ tasks:
     desc: Install the modding stack (Lovely + Steamodded) and sync the mods
     cmds:
       - task: loader:install
+      - task: steam:launch-options
+        ignore_error: true
       - task: mods:sync
 
   doctor:

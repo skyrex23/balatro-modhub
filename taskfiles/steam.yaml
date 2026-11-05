@@ -1,0 +1,17 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Show the launch options of Balatro
+    cmds:
+      - bash scripts/steam.sh check
+
+  launch-options:
+    desc: Set the launch options of Balatro in the Steam configuration (task steam:launch-options -- --force)
+    cmds:
+      - bash scripts/steam.sh launch-options {{.CLI_ARGS}}
+
+  check:
+    desc: Show the launch options of Balatro
+    cmds:
+      - bash scripts/steam.sh check

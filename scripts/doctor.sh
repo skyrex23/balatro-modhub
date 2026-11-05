@@ -38,25 +38,27 @@ check() {
 }
 
 check_launch_options() {
-	local vdf
-	vdf="$(find "$HOME"/.steam/steam/userdata "$HOME"/.local/share/Steam/userdata \
-		-maxdepth 3 -name "localconfig.vdf" 2> /dev/null | head -n 1)"
+	local -r options="${STEAM_LAUNCH_OPTIONS:-}"
 
-	if [[ -z "$vdf" ]]; then
-		check "launch options" warn "<localconfig.vdf not found, set them manually in Steam>"
+	if [[ -z "$options" ]]; then
+		check "launch options" warn "<STEAM_LAUNCH_OPTIONS is not set>"
 		return
 	fi
 
-	local options
-	options="$(grep -A 40 "\"$BALATRO_APP_ID\"" "$vdf" | grep -m 1 '"LaunchOptions"' |
-		sed 's/.*"LaunchOptions"[[:space:]]*"\(.*\)".*/\1/' || true)"
+	if ! have_cmd python3; then
+		check "launch options" warn "<python3 is missing>"
+		return
+	fi
 
-	if [[ -z "$options" ]]; then
-		check "launch options" warn "<not set, use WINEDLLOVERRIDES=\"winmm=n,b\" %command%>"
-	elif [[ "$options" == *"WINEDLLOVERRIDES"* ]]; then
-		check "launch options" ok "$options"
+	local current
+	current="$(python3 "$SCRIPT_DIR/steam/launch_options.py" --appid "$BALATRO_APP_ID" --options "$options" --check 2> /dev/null || true)"
+
+	if [[ "$current" == "$options" ]]; then
+		check "launch options" ok "$current"
+	elif [[ -z "$current" ]]; then
+		check "launch options" warn "<not set, run 'task steam:launch-options'>"
 	else
-		check "launch options" warn "<$options, add WINEDLLOVERRIDES=\"winmm=n,b\">"
+		check "launch options" warn "<$current, run 'task steam:launch-options -- --force'>"
 	fi
 }
 

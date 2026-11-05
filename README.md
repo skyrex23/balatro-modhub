@@ -8,7 +8,7 @@ Every mod lives in its own upstream repository and is added here as a **git subm
 ## Requirements
 
 - [Task](https://taskfile.dev) (`task`)
-- `git`, `jq`, `curl`, `unzip`
+- `git`, `jq`, `curl`, `unzip`, `python3`
 - Balatro installed through Steam (on Linux, via Proton) and [Steamodded](https://github.com/Steamodded/smods) +
   [Lovely Injector](https://github.com/ethangreen-dev/lovely-injector)
 
@@ -20,16 +20,17 @@ cd ~/balatro-mods-collection
 task setup
 ```
 
-`task setup` installs the loader (Lovely + Steamodded) and applies the state of the manifest to the Balatro `Mods`
-folder.
+`task setup` installs the loader (Lovely + Steamodded), sets the launch options of Balatro in Steam and applies the
+state of the manifest to the Balatro `Mods` folder.
 
-Afterwards you have to set the launch options in Steam, **only once**:
+The launch options are the ones the Lovely Injector needs to load the mod loader:
 
 ```
 WINEDLLOVERRIDES="winmm=n,b" %command%
 ```
 
-> In Steam: `Balatro` → `Properties` → `General` → `Launch Options`.
+They are written to `localconfig.vdf`, so **Steam has to be closed** while they are set: Steam rewrites that file when
+it exits and would drop the change. The task refuses to run while Steam is running.
 
 Finally, `task run` launches the game.
 
@@ -40,13 +41,16 @@ Finally, `task run` launches the game.
 ├── Taskfile.yaml         Main tasks
 ├── taskfiles/
 │   ├── loader.yaml       Loader tasks (Lovely + Steamodded)
-│   └── mods.yaml         Mod tasks
+│   ├── mods.yaml         Mod tasks
+│   └── steam.yaml        Steam configuration tasks
 ├── scripts/
 │   ├── lib/common.sh     Shared helpers (config, path detection, manifest)
 │   ├── doctor.sh         Environment check
 │   ├── loader.sh         Loader installation and updates
 │   ├── logs.sh           Lovely and Steamodded logs
-│   └── mods.sh           Mod management
+│   ├── mods.sh           Mod management
+│   ├── steam.sh          Steam launch options
+│   └── steam/launch_options.py   Reads and writes localconfig.vdf
 ├── config/
 │   ├── balatro.env       Default configuration
 │   ├── balatro.local.env Local overrides (not versioned)
@@ -75,6 +79,8 @@ Finally, `task run` launches the game.
 | `task loader:install`                | Installs Lovely and Steamodded                          |
 | `task loader:update`                 | Updates Lovely and Steamodded                           |
 | `task loader:uninstall`              | Removes Lovely and Steamodded                           |
+| `task steam:launch-options`          | Sets the launch options of Balatro in the Steam config  |
+| `task steam:check`                   | Shows the launch options of Balatro                     |
 
 > Task treats the arguments that follow the task name as additional tasks, so the arguments of the mod tasks go after
 > `--`. They can also be passed as variables: `task mods:enable mod_name=first-round-joker`.
@@ -140,13 +146,14 @@ submodule pointer is left modified in the index: review it and commit when the s
 
 `config/balatro.env` holds the default values and `config/balatro.local.env` (not versioned) the local overrides:
 
-| Variable                   | Default       | What it is                                   |
-| -------------------------- | ------------- | -------------------------------------------- |
-| `BALATRO_APP_ID`           | `2379780`     | Steam app id of Balatro                      |
-| `BALATRO_GAME_DIR`         | auto-detected | Game folder (the one with `Balatro.exe`)     |
-| `BALATRO_SAVE_DIR`         | auto-detected | Save folder (the one with the `Mods` folder) |
-| `MOD_LINK_MODE`            | `symlink`     | `symlink` or `copy`                          |
-| `SUBMODULE_INIT_RECURSIVE` | `false`       | Initialize the submodules of the mods        |
+| Variable                   | Default                                  | What it is                                   |
+| -------------------------- | ---------------------------------------- | -------------------------------------------- |
+| `BALATRO_APP_ID`           | `2379780`                                | Steam app id of Balatro                      |
+| `BALATRO_GAME_DIR`         | auto-detected                            | Game folder (the one with `Balatro.exe`)     |
+| `BALATRO_SAVE_DIR`         | auto-detected                            | Save folder (the one with the `Mods` folder) |
+| `MOD_LINK_MODE`            | `symlink`                                | `symlink` or `copy`                          |
+| `SUBMODULE_INIT_RECURSIVE` | `false`                                  | Initialize the submodules of the mods        |
+| `STEAM_LAUNCH_OPTIONS`     | `WINEDLLOVERRIDES="winmm=n,b" %command%` | Launch options of Balatro in Steam           |
 
 ## Troubleshooting
 
@@ -158,6 +165,9 @@ Check `task mods:info -- <name>` and that the `Mods` folder of the game contains
 
 **The mods do not show up after cloning the repository.** The submodules are not initialized:
 `git submodule update --init`.
+
+**`task steam:launch-options` says that Steam is running.** Close Steam and run it again: Steam rewrites
+`localconfig.vdf` when it exits and would drop the change.
 
 **A mod does not load.** Look at `task logs`: Steamodded writes the loading errors in the Lovely log.
 

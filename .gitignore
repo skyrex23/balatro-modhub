@@ -4,3 +4,7 @@ config/balatro.local.env
 # Temporary files
 *.tmp
 .tmp/
+
+# Python cache
+__pycache__/
+*.pyc
