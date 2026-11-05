@@ -218,7 +218,9 @@ cmd_sync() {
 		log_info "  - $base"
 		found=true
 	done
-	[[ "$found" == "false" ]] && log_info "  (none)"
+	if [[ "$found" == "false" ]]; then
+		log_info "  (none)"
+	fi
 }
 
 cmd_update() {
