@@ -2,9 +2,10 @@ version: '3'
 
 tasks:
   default:
-    desc: Show the launch options of Balatro
+    desc: List the available Steam tasks
     cmds:
-      - bash scripts/steam.sh check
+      - task --list --taskfile {{.TASKFILE}}
+    silent: true
 
   launch-options:
     desc: Set the launch options of Balatro in the Steam configuration (task steam:launch-options -- --force)

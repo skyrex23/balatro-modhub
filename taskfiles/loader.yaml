@@ -2,9 +2,10 @@ version: "3"
 
 tasks:
   default:
-    desc: Show the state of the modding stack
+    desc: List the available loader tasks
     cmds:
-      - bash scripts/loader.sh status
+      - task --list --taskfile {{.TASKFILE}}
+    silent: true
 
   install:
     desc: Install Lovely Injector and Steamodded (task loader:install -- --force to reinstall)

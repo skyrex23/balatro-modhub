@@ -6,9 +6,10 @@ vars:
 
 tasks:
   default:
-    desc: List the mods of the collection
+    desc: List the available mod tasks
     cmds:
-      - bash scripts/mods.sh list
+      - task --list --taskfile {{.TASKFILE}}
+    silent: true
 
   list:
     desc: List the mods of the collection with their state
