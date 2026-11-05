@@ -169,19 +169,13 @@ submodule pointer is left modified in the index: review it and commit when the s
 
 ## Troubleshooting
 
-**The game does not show the `MODS` button.** Steamodded is not installed or `winmm.dll` is missing. Check `task doctor`
-and `task loader:status`.
-
-**Steamodded does not see the mods.** The symlink has to point to the folder that contains the mod, not to its parent.
-Check `task mods:info -- <name>` and that the `Mods` folder of the game contains the files of the mod.
-
-**The mods do not show up after cloning the repository.** The submodules are not initialized:
-`git submodule update --init`.
-
-**`task steam:launch-options` says that Steam is running.** Close Steam and run it again: Steam rewrites
-`localconfig.vdf` when it exits and would drop the change.
-
-**A mod does not load.** Look at `task logs`: Steamodded writes the loading errors in the Lovely log.
+| Symptom                                              | Cause                                                   | Fix                                                                 |
+| ---------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
+| The game does not show the `MODS` button             | Steamodded is not installed or `winmm.dll` is missing   | `task doctor` and `task loader:status`                              |
+| Steamodded does not see the mods                     | The symlink points to the parent folder, not to the mod | `task mods:info -- <name>` and check the `Mods` folder of the game  |
+| The mods do not show up after cloning the repository | The submodules are not initialized                      | `git submodule update --init`                                       |
+| `task steam:launch-options` says that Steam runs     | Steam rewrites `localconfig.vdf` when it exits          | Close Steam and run it again                                        |
+| A mod does not load                                  | The mod fails to load                                   | `task logs`: Steamodded writes the loading errors in the Lovely log |
 
 ## License
 
