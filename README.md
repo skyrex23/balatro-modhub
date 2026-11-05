@@ -17,8 +17,18 @@ updating and removing mods, without touching the game folder by hand.
 
 ## Getting started
 
+With [GitHub CLI](https://cli.github.com):
+
 ```bash
-git clone --recurse-submodules <this-repo> ~/balatro-modhub
+gh repo clone skyrex23/balatro-modhub ~/balatro-modhub -- --recurse-submodules
+cd ~/balatro-modhub
+task setup
+```
+
+Or with plain git:
+
+```bash
+git clone --recurse-submodules https://github.com/skyrex23/balatro-modhub.git ~/balatro-modhub
 cd ~/balatro-modhub
 task setup
 ```
