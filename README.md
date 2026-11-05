@@ -12,8 +12,7 @@ updating and removing mods, without touching the game folder by hand.
 
 - [Task](https://taskfile.dev) (`task`)
 - `git`, `jq`, `curl`, `unzip`, `python3`
-- Balatro installed through Steam (on Linux, via Proton) and [Steamodded](https://github.com/Steamodded/smods) +
-  [Lovely Injector](https://github.com/ethangreen-dev/lovely-injector)
+- Balatro installed through Steam (on Linux, via Proton)
 
 ## Getting started
 
