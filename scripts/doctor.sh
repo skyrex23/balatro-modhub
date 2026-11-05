@@ -63,7 +63,7 @@ check_launch_options() {
 }
 
 main() {
-	printf '\n%sBalatro mods collection — environment check%s\n\n' "$C_INFO" "$C_RESET"
+	printf '\n%sBalatro Mod Hub — environment check%s\n\n' "$C_INFO" "$C_RESET"
 
 	printf '%sDependencies%s\n' "$C_INFO" "$C_RESET"
 	local cmd

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ======================================================================================================================
-# Shared helpers for the Balatro mods collection: config loading, path detection and manifest access
+# Shared helpers for the Balatro Mod Hub: config loading, path detection and manifest access
 # ======================================================================================================================
 
 set -euo pipefail

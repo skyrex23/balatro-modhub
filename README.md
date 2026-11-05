@@ -1,9 +1,12 @@
-# Balatro mods collection
+# Balatro Mod Hub
 
-Personal collection of [Balatro](https://www.playbalatro.com/) mods with the tooling to enable, disable and update them.
+Hub of [Balatro](https://www.playbalatro.com/) mods with the tooling to enable, disable and update them.
 
 Every mod lives in its own upstream repository and is added here as a **git submodule**, so the state of the collection
 (which mods exist, which ones are enabled and at which version) is versioned in a single place.
+
+The tooling is the point of the hub: `task` drives the whole collection, from installing the modding stack to enabling,
+updating and removing mods, without touching the game folder by hand.
 
 ## Requirements
 
@@ -15,8 +18,8 @@ Every mod lives in its own upstream repository and is added here as a **git subm
 ## Getting started
 
 ```bash
-git clone --recurse-submodules <this-repo> ~/balatro-mods-collection
-cd ~/balatro-mods-collection
+git clone --recurse-submodules <this-repo> ~/balatro-modhub
+cd ~/balatro-modhub
 task setup
 ```
 
@@ -94,7 +97,7 @@ Balatro `Mods` folder:
 ~/.steam/steam/steamapps/compatdata/2379780/pfx/drive_c/users/steamuser/AppData/Roaming/Balatro/
 └── Mods
     ├── smods            ← Steamodded (the loader)
-    └── first-round-joker → .../balatro-mods-collection/mods/first-round-joker/first-round-joker
+    └── first-round-joker → .../balatro-modhub/mods/first-round-joker/first-round-joker
 ```
 
 The advantage of the symlink: updating a mod is a `git pull` and the change is visible instantly, without copying
