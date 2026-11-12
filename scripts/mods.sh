@@ -242,11 +242,12 @@ cmd_update() {
 	fi
 
 	local -A updated_checkouts=()
+	local checkout
 	for name in "${selected[@]}"; do
 		[[ -n "$name" ]] || continue
 		manifest_exists "$name" || log_critical "Unknown mod: $name"
 
-		local -r checkout="$(basename "$(mod_checkout_dir "$name")")"
+		checkout="$(basename "$(mod_checkout_dir "$name")")"
 		if [[ -n "${updated_checkouts[$checkout]:-}" ]]; then
 			continue
 		fi
