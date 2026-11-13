@@ -26,3 +26,7 @@
 	path = mods/cryptid
 	url = https://github.com/SpectralPack/Cryptid
 	branch = main
+[submodule "mods/mikas-balatro"]
+	path = mods/mikas-balatro
+	url = https://github.com/MikaSchoenmakers/MikasBalatro
+	branch = main

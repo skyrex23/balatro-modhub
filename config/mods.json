@@ -71,6 +71,15 @@
       "branch": "release",
       "enabled": true,
       "description": "Shared code required by the LnxFCA mods"
+    },
+    {
+      "name": "mikas-balatro",
+      "repo": "https://github.com/MikaSchoenmakers/MikasBalatro",
+      "checkout": "mikas-balatro",
+      "path": ".",
+      "branch": "main",
+      "enabled": true,
+      "description": "Mod collection with 60 jokers, 2 tarots, 1 spectral and 7 decks"
     }
   ]
 }
