@@ -77,9 +77,11 @@ Finally, `task run` launches the game.
 | `task setup`                         | Installs the loader and syncs the mods                  |
 | `task doctor`                        | Checks dependencies, paths and loader state             |
 | `task status`                        | Lists the mods and the loader state                     |
+| `task test`                          | Runs the contract tests of the structured output        |
 | `task run`                           | Launches Balatro through Steam                          |
 | `task logs`                          | Shows the most recent log of the loader                 |
 | `task mods:list`                     | Lists the mods with their state                         |
+| `task mods:status`                   | Summary of the state of the collection                  |
 | `task mods:info -- <name>`           | Details of a single mod                                 |
 | `task mods:enable -- <name>`         | Enables a mod                                           |
 | `task mods:disable -- <name>`        | Disables a mod                                          |
@@ -96,6 +98,29 @@ Finally, `task run` launches the game.
 
 > Task treats the arguments that follow the task name as additional tasks, so the arguments of the mod tasks go after
 > `--`. They can also be passed as variables: `task mods:enable mod_name=first-round-joker`.
+
+## Structured output
+
+The commands that report the state of the collection can print it as JSON, with `--json` after the `--`:
+
+```bash
+task mods:list -- --json
+task mods:status -- --json
+task mods:info -- --json first-round-joker
+task doctor -- --json
+```
+
+The result is a single JSON document on the standard output, and the human readable messages go to the standard error.
+It is a stable contract to read the state of the collection without parsing the tables.
+
+The state of a mod is one of:
+
+| State      | Meaning                                              |
+| ---------- | ---------------------------------------------------- |
+| `enabled`  | The manifest enables it and it is linked into `Mods` |
+| `disabled` | The manifest disables it and it is not linked        |
+| `diverged` | The manifest enables it but the link is missing      |
+| `orphan`   | The link exists but the manifest disables it         |
 
 ## How enabling and disabling works
 

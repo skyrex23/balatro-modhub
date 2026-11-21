@@ -14,7 +14,12 @@ tasks:
   list:
     desc: List the mods of the collection with their state
     cmds:
-      - bash scripts/mods.sh list
+      - bash scripts/mods.sh list {{.MOD_ARGS}}
+
+  status:
+    desc: Show a summary of the state of the collection
+    cmds:
+      - bash scripts/mods.sh status {{.MOD_ARGS}}
 
   info:
     desc: Show the details of a mod (task mods:info -- <name>)

@@ -168,6 +168,11 @@ cmd_uninstall() {
 }
 
 cmd_status() {
+	if [[ "$JSON_OUTPUT" == "true" ]]; then
+		cmd_status_json
+		return 0
+	fi
+
 	resolve_env
 
 	printf 'game dir:   %s\n' "${BALATRO_GAME_DIR:-<not found>}"
@@ -184,6 +189,32 @@ cmd_status() {
 	fi
 }
 
+cmd_status_json() {
+	resolve_env
+
+	local -r injector="$(lovely_injector_file "${BALATRO_GAME_DIR:-/nonexistent}" || true)"
+	local steamodded="unknown"
+
+	if [[ -d "$BALATRO_MODS_DIR/smods" ]]; then
+		steamodded="$(git -C "$BALATRO_MODS_DIR/smods" rev-parse --short HEAD 2> /dev/null || echo unknown)"
+	fi
+
+	jq -n \
+		--arg game_dir "${BALATRO_GAME_DIR:-}" \
+		--arg save_dir "${BALATRO_SAVE_DIR:-}" \
+		--arg mods_dir "$BALATRO_MODS_DIR" \
+		--arg lovely "$injector" \
+		--arg steamodded "$steamodded" \
+		'{
+			ok: true,
+			game_dir: $game_dir,
+			save_dir: $save_dir,
+			mods_dir: $mods_dir,
+			lovely: $lovely,
+			steamodded: $steamodded
+		}'
+}
+
 main() {
 	local -r command="${1:-}"
 	[[ -n "$command" ]] || {
@@ -192,11 +223,14 @@ main() {
 	}
 	shift
 
+	local -a args=("$@")
+	parse_json_flag args
+
 	case "$command" in
-	install) cmd_install "$@" ;;
-	update) cmd_update "$@" ;;
-	uninstall) cmd_uninstall "$@" ;;
-	status) cmd_status "$@" ;;
+	install) cmd_install "${args[@]}" ;;
+	update) cmd_update "${args[@]}" ;;
+	uninstall) cmd_uninstall "${args[@]}" ;;
+	status) cmd_status "${args[@]}" ;;
 	help | --help | -h) printf '%s\n' "$USAGE" ;;
 	*) log_critical "Unknown command: $command" ;;
 	esac

@@ -26,7 +26,12 @@ tasks:
   doctor:
     desc: Check the local environment (dependencies, paths, modding stack)
     cmds:
-      - bash scripts/doctor.sh
+      - bash scripts/doctor.sh {{.CLI_ARGS}}
+
+  test:
+    desc: Run the contract tests of the structured output
+    cmds:
+      - bash tests/contract.sh
 
   status:
     desc: Show the state of the collection and of the modding stack
