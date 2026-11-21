@@ -46,6 +46,36 @@ it exits and would drop the change. The task refuses to run while Steam is runni
 
 Finally, `task run` launches the game.
 
+## TUI
+
+The collection can also be managed from a terminal interface, for the people who just want to play and browse the mods
+instead of reading the task list:
+
+```bash
+uv tool install ./tui
+balatro-modhub
+```
+
+Without installing it, from the repository:
+
+```bash
+task tui:run
+```
+
+The TUI does not reimplement the logic of the collection: it reads the JSON output of the scripts of this repository and
+calls them for the changes, so `task` is not needed. It looks for the collection in the current directory and its
+parents, or in `COLLECTION_ROOT`.
+
+| Key     | Action                                                     |
+| ------- | ---------------------------------------------------------- |
+| `/`     | Search                                                     |
+| `space` | Enable or disable the mod                                  |
+| `enter` | Details of the mod                                         |
+| `s`     | Apply the state of the manifest to the `Mods` folder       |
+| `d`     | Checks of the environment, with the action that fixes them |
+| `r`     | Reload                                                     |
+| `q`     | Quit                                                       |
+
 ## Layout
 
 ```
@@ -63,6 +93,11 @@ Finally, `task run` launches the game.
 │   ├── mods.sh           Mod management
 │   ├── steam.sh          Steam launch options
 │   └── steam/launch_options.py   Reads and writes localconfig.vdf
+├── tests/
+│   └── contract.sh       Contract tests of the structured output
+├── tui/
+│   ├── pyproject.toml    The TUI, as a package for uv
+│   └── src/balatro_modhub_tui/   The terminal interface
 ├── config/
 │   ├── balatro.env       Default configuration
 │   ├── balatro.local.env Local overrides (not versioned)
@@ -77,9 +112,11 @@ Finally, `task run` launches the game.
 | `task setup`                         | Installs the loader and syncs the mods                  |
 | `task doctor`                        | Checks dependencies, paths and loader state             |
 | `task status`                        | Lists the mods and the loader state                     |
+| `task test`                          | Runs the contract tests of the structured output        |
 | `task run`                           | Launches Balatro through Steam                          |
 | `task logs`                          | Shows the most recent log of the loader                 |
 | `task mods:list`                     | Lists the mods with their state                         |
+| `task mods:status`                   | Summary of the state of the collection                  |
 | `task mods:info -- <name>`           | Details of a single mod                                 |
 | `task mods:enable -- <name>`         | Enables a mod                                           |
 | `task mods:disable -- <name>`        | Disables a mod                                          |
@@ -96,6 +133,29 @@ Finally, `task run` launches the game.
 
 > Task treats the arguments that follow the task name as additional tasks, so the arguments of the mod tasks go after
 > `--`. They can also be passed as variables: `task mods:enable mod_name=first-round-joker`.
+
+## Structured output
+
+The commands that report the state of the collection can print it as JSON, with `--json` after the `--`:
+
+```bash
+task mods:list -- --json
+task mods:status -- --json
+task mods:info -- --json first-round-joker
+task doctor -- --json
+```
+
+The result is a single JSON document on the standard output, and the human readable messages go to the standard error.
+It is the contract that the TUI consumes, so the state of the collection can be read without parsing the tables.
+
+The state of a mod is one of:
+
+| State      | Meaning                                              |
+| ---------- | ---------------------------------------------------- |
+| `enabled`  | The manifest enables it and it is linked into `Mods` |
+| `disabled` | The manifest disables it and it is not linked        |
+| `diverged` | The manifest enables it but the link is missing      |
+| `orphan`   | The link exists but the manifest disables it         |
 
 ## How enabling and disabling works
 

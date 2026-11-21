@@ -17,6 +17,7 @@ Usage: $INVOKER <command> [arguments]
 
 Commands:
   list                     List the mods of the collection and their current state
+  status                   Show a summary of the state of the collection
   info <name>              Show the details of a single mod
   enable <name>            Enable a mod (links it into the Balatro Mods folder)
   disable <name>           Disable a mod (removes it from the Balatro Mods folder)
@@ -28,6 +29,9 @@ Commands:
                            (the description takes the rest of the arguments)
   remove <name>            Remove a mod from the collection
   path <name>              Print the local path of a mod
+
+Options:
+  --json                   Print the output as JSON (list, status, info and the mutating commands)
 EOF
 
 # --- Helpers -----------------------------------------------------------------------------------------------------
@@ -112,9 +116,94 @@ unlink_mod() {
 	fi
 }
 
+# --- Structured output -------------------------------------------------------------------------------------------
+
+# Count how many of the given states match
+count_state() {
+	local -r state="$1"
+	shift
+
+	local item count=0
+
+	for item in "$@"; do
+		if [[ "$item" == "$state" ]]; then
+			count=$((count + 1))
+		fi
+	done
+
+	printf '%d' "$count"
+}
+
+# The JSON document of a single mod, with the state of the manifest and the state of the real link
+mod_json_entry() {
+	local -r name="$1"
+	local -r repo="$(manifest_field "$name" "repo")"
+	local -r checkout="$(basename "$(mod_checkout_dir "$name")")"
+	local -r path="$(manifest_field "$name" "path")"
+	local -r branch="$(manifest_field "$name" "branch")"
+	local -r description="$(manifest_field "$name" "description")"
+	local -r commit="$(mod_local_commit "$name")"
+	local -r source="$(mod_source_dir "$name")"
+	local -r target="$(mod_target_dir "$name")"
+
+	jq -n \
+		--arg name "$name" \
+		--arg repo "$repo" \
+		--arg checkout "$checkout" \
+		--arg path "$path" \
+		--arg branch "$branch" \
+		--arg description "$description" \
+		--arg commit "$commit" \
+		--arg source "$source" \
+		--arg target "$target" \
+		--arg state "$(mod_state "$name")" \
+		--argjson enabled "$(mod_is_enabled "$name" && echo true || echo false)" \
+		--argjson linked "$(mod_is_linked "$name" && echo true || echo false)" \
+		'{
+			name: $name,
+			repo: $repo,
+			checkout: $checkout,
+			path: $path,
+			branch: $branch,
+			description: $description,
+			enabled: $enabled,
+			linked: $linked,
+			state: $state,
+			commit: $commit,
+			source: $source,
+			target: $target
+		}'
+}
+
+# The JSON document of every mod of the collection, one object per line
+mods_json_entries() {
+	local name
+
+	while read -r name; do
+		[[ -n "$name" ]] || continue
+		mod_json_entry "$name"
+		printf '\n'
+	done < <(manifest_names)
+}
+
+json_action() {
+	local -r action="$1"
+	local -r name="$2"
+
+	[[ "$JSON_OUTPUT" == "true" ]] || return 0
+
+	jq -n --arg action "$action" --arg name "$name" --argjson mod "$(mod_json_entry "$name")" \
+		'{ok: true, action: $action, name: $name, mod: $mod}'
+}
+
 # --- Commands ----------------------------------------------------------------------------------------------------
 
 cmd_list() {
+	if [[ "$JSON_OUTPUT" == "true" ]]; then
+		cmd_list_json
+		return 0
+	fi
+
 	require_manifest
 	resolve_env
 
@@ -127,16 +216,7 @@ cmd_list() {
 		branch="$(manifest_field "$name" "branch")"
 		repo="$(manifest_field "$name" "repo")"
 		commit="$(mod_local_commit "$name")"
-
-		if mod_is_enabled "$name"; then
-			if mod_is_linked "$name"; then
-				state="enabled"
-			else
-				state="enabled!"
-			fi
-		else
-			state="disabled"
-		fi
+		state="$(mod_state "$name")"
 
 		printf '%-24s %-10s %-9s %-8s %s\n' "$name" "$state" "$commit" "${branch:-main}" "$repo"
 	done < <(manifest_names)
@@ -145,10 +225,64 @@ cmd_list() {
 	printf '\n%s mod(s) in the collection\n' "$total"
 }
 
+cmd_list_json() {
+	require_manifest
+	resolve_env
+
+	mods_json_entries | jq -s --arg mods_dir "$BALATRO_MODS_DIR" \
+		'{ok: true, total: length, mods_dir: $mods_dir, mods: .}'
+}
+
+cmd_status() {
+	if [[ "$JSON_OUTPUT" == "true" ]]; then
+		cmd_status_json
+		return 0
+	fi
+
+	require_manifest
+	resolve_env
+
+	local -a states=()
+	local name
+
+	while read -r name; do
+		[[ -n "$name" ]] || continue
+		states+=("$(mod_state "$name")")
+	done < <(manifest_names)
+
+	printf '%s mod(s) in the collection\n' "${#states[@]}"
+	printf 'enabled:  %s\n' "$(count_state enabled "${states[@]}")"
+	printf 'disabled: %s\n' "$(count_state disabled "${states[@]}")"
+	printf 'diverged: %s\n' "$(count_state diverged "${states[@]}")"
+	printf 'orphan:   %s\n' "$(count_state orphan "${states[@]}")"
+	printf 'mods dir: %s\n' "$BALATRO_MODS_DIR"
+}
+
+cmd_status_json() {
+	require_manifest
+	resolve_env
+
+	mods_json_entries | jq -s --arg mods_dir "$BALATRO_MODS_DIR" '{
+		ok: true,
+		total: length,
+		enabled: [.[] | select(.state == "enabled")] | length,
+		disabled: [.[] | select(.state == "disabled")] | length,
+		diverged: [.[] | select(.state == "diverged")] | length,
+		orphan: [.[] | select(.state == "orphan")] | length,
+		mods_dir: $mods_dir,
+		mods: .
+	}'
+}
+
 cmd_info() {
 	local -r name="${1:-}"
 	require_mod_name "$name"
 	resolve_env
+
+	if [[ "$JSON_OUTPUT" == "true" ]]; then
+		cmd_info_json "$name"
+		return 0
+	fi
 
 	printf 'name:        %s\n' "$name"
 	printf 'repo:        %s\n' "$(manifest_field "$name" "repo")"
@@ -161,13 +295,31 @@ cmd_info() {
 	printf 'commit:      %s\n' "$(mod_local_commit "$name")"
 }
 
+cmd_info_json() {
+	local -r name="$1"
+	local -r checkout="$(basename "$(mod_checkout_dir "$name")")"
+	local -r shared="$(jq -c --arg c "$checkout" --arg n "$name" \
+		'[.mods[] | select((.checkout // .name) == $c) | select(.name != $n) | .name]' "$MANIFEST_FILE")"
+
+	jq -n --argjson mod "$(mod_json_entry "$name")" --argjson shared "$shared" \
+		'{ok: true, mod: $mod, shared_checkout_with: $shared}'
+}
+
 cmd_enable() {
 	local -r name="${1:-}"
 	require_mod_name "$name"
 	resolve_env
 
 	manifest_set_field "$name" "enabled" "true"
-	link_mod "$name"
+
+	if ! link_mod "$name"; then
+		if [[ "$JSON_OUTPUT" == "true" ]]; then
+			json_fail "Could not link the mod '$name' into $BALATRO_MODS_DIR"
+		fi
+		return 1
+	fi
+
+	json_action "enable" "$name"
 }
 
 cmd_disable() {
@@ -177,6 +329,8 @@ cmd_disable() {
 
 	manifest_set_field "$name" "enabled" "false"
 	unlink_mod "$name"
+
+	json_action "disable" "$name"
 }
 
 cmd_toggle() {
@@ -207,19 +361,33 @@ cmd_sync() {
 		fi
 	done < <(manifest_names)
 
-	log_info ""
-	log_info "Foreign entries in $BALATRO_MODS_DIR (not managed by the collection):"
+	local -a foreign=()
 	local entry base found=false
 	for entry in "$BALATRO_MODS_DIR"/*; do
 		[[ -e "$entry" ]] || continue
 		base="$(basename "$entry")"
 		[[ "$base" == "smods" ]] && continue
 		manifest_exists "$base" && continue
-		log_info "  - $base"
+		foreign+=("$base")
 		found=true
 	done
+
+	if [[ "$JSON_OUTPUT" == "true" ]]; then
+		local -r foreign_json="$(printf '%s\n' "${foreign[@]:-}" | jq -R -s 'split("\n") | map(select(length > 0))')"
+		mods_json_entries | jq -s --arg mods_dir "$BALATRO_MODS_DIR" --argjson foreign "$foreign_json" \
+			'{ok: true, action: "sync", mods_dir: $mods_dir, foreign: $foreign, mods: .}'
+		return 0
+	fi
+
+	log_info ""
+	log_info "Foreign entries in $BALATRO_MODS_DIR (not managed by the collection):"
 	if [[ "$found" == "false" ]]; then
 		log_info "  (none)"
+	else
+		local item
+		for item in "${foreign[@]}"; do
+			log_info "  - $item"
+		done
 	fi
 }
 
@@ -345,17 +513,21 @@ main() {
 	}
 	shift
 
+	local -a args=("$@")
+	parse_json_flag args
+
 	case "$command" in
-	list) cmd_list "$@" ;;
-	info) cmd_info "$@" ;;
-	enable) cmd_enable "$@" ;;
-	disable) cmd_disable "$@" ;;
-	toggle) cmd_toggle "$@" ;;
-	sync) cmd_sync "$@" ;;
-	update) cmd_update "$@" ;;
-	add) cmd_add "$@" ;;
-	remove) cmd_remove "$@" ;;
-	path) cmd_path "$@" ;;
+	list) cmd_list "${args[@]}" ;;
+	status) cmd_status "${args[@]}" ;;
+	info) cmd_info "${args[@]}" ;;
+	enable) cmd_enable "${args[@]}" ;;
+	disable) cmd_disable "${args[@]}" ;;
+	toggle) cmd_toggle "${args[@]}" ;;
+	sync) cmd_sync "${args[@]}" ;;
+	update) cmd_update "${args[@]}" ;;
+	add) cmd_add "${args[@]}" ;;
+	remove) cmd_remove "${args[@]}" ;;
+	path) cmd_path "${args[@]}" ;;
 	help | --help | -h) printf '%s\n' "$USAGE" ;;
 	*) log_critical "Unknown command: $command" ;;
 	esac

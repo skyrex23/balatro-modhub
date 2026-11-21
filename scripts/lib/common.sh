@@ -7,6 +7,8 @@ set -euo pipefail
 
 INVOKER="${INVOKER:-$(basename "${BASH_SOURCE[0]}")}"
 
+JSON_OUTPUT="${JSON_OUTPUT:-false}"
+
 COLLECTION_ROOT="${COLLECTION_ROOT:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)}"
 CONFIG_DIR="$COLLECTION_ROOT/config"
 COLLECTION_MODS_DIR="$COLLECTION_ROOT/mods"
@@ -30,14 +32,64 @@ else
 	C_ERR=""
 fi
 
-log_info() { printf '%s\n' "$*"; }
-log_step() { printf '%s==>%s %s\n' "$C_INFO" "$C_RESET" "$*"; }
-log_ok() { printf '%s✓%s %s\n' "$C_OK" "$C_RESET" "$*"; }
+log_info() { printf '%s\n' "$*" | log_stream; }
+log_step() { printf '%s==>%s %s\n' "$C_INFO" "$C_RESET" "$*" | log_stream; }
+log_ok() { printf '%s✓%s %s\n' "$C_OK" "$C_RESET" "$*" | log_stream; }
 log_warn() { printf '%s!%s %s\n' "$C_WARN" "$C_RESET" "$*" >&2; }
 log_error() { printf '%sx%s %s\n' "$C_ERR" "$C_RESET" "$*" >&2; }
 log_critical() {
 	printf '%sx%s %s\n' "$C_ERR" "$C_RESET" "$*" >&2
+	if [[ "$JSON_OUTPUT" == "true" ]]; then
+		json_fail "$*"
+	fi
 	exit 1
+}
+
+# --- Structured output -------------------------------------------------------------------------------------------
+
+# The human readable output goes to stderr when the structured output is enabled, so stdout stays valid JSON
+log_stream() {
+	if [[ "$JSON_OUTPUT" == "true" ]]; then
+		cat >&2
+	else
+		cat
+	fi
+}
+
+json_escape() {
+	local text="$1"
+
+	text="${text//\\/\\\\}"
+	text="${text//\"/\\\"}"
+	text="${text//$'\n'/\\n}"
+	text="${text//$'\r'/\\r}"
+	text="${text//$'\t'/\\t}"
+
+	printf '%s' "$text"
+}
+
+json_fail() {
+	local -r message="$1"
+
+	printf '{"ok": false, "error": "%s"}\n' "$(json_escape "$message")"
+	exit 1
+}
+
+# Extract the --json flag from the arguments and enable the structured output
+parse_json_flag() {
+	local -n target="$1"
+	local -a filtered=()
+	local item
+
+	for item in "${target[@]}"; do
+		if [[ "$item" == "--json" ]]; then
+			JSON_OUTPUT=true
+		else
+			filtered+=("$item")
+		fi
+	done
+
+	target=("${filtered[@]}")
 }
 
 # --- Generic helpers ---------------------------------------------------------------------------------------------
@@ -135,6 +187,8 @@ detect_save_dir() {
 }
 
 resolve_env() {
+	local -r strict="${1:-true}"
+
 	load_config
 
 	BALATRO_GAME_DIR="${BALATRO_GAME_DIR:-$(detect_game_dir || true)}"
@@ -142,10 +196,14 @@ resolve_env() {
 	MOD_LINK_MODE="${MOD_LINK_MODE:-symlink}"
 
 	if [[ -z "$BALATRO_SAVE_DIR" ]]; then
-		log_critical "Could not detect the Balatro save directory. Set BALATRO_SAVE_DIR in config/balatro.local.env"
+		if [[ "$strict" == "true" ]]; then
+			log_critical "Could not detect the Balatro save directory. Set BALATRO_SAVE_DIR in config/balatro.local.env"
+		fi
+		BALATRO_MODS_DIR=""
+	else
+		BALATRO_MODS_DIR="$BALATRO_SAVE_DIR/$BALATRO_MODS_FOLDER_NAME"
 	fi
 
-	BALATRO_MODS_DIR="$BALATRO_SAVE_DIR/$BALATRO_MODS_FOLDER_NAME"
 	export BALATRO_GAME_DIR BALATRO_SAVE_DIR BALATRO_MODS_DIR MOD_LINK_MODE
 }
 
@@ -271,6 +329,29 @@ mod_is_enabled() {
 mod_is_linked() {
 	local -r target="$(mod_target_dir "$1")"
 	[[ -L "$target" || -d "$target" ]]
+}
+
+# The effective state of a mod:
+#   enabled  -> the manifest enables it and it is linked into the Mods folder
+#   disabled -> the manifest disables it and it is not linked
+#   diverged -> the manifest enables it but the link is missing
+#   orphan   -> the link exists but the manifest disables it
+mod_state() {
+	local -r name="$1"
+
+	if mod_is_enabled "$name"; then
+		if mod_is_linked "$name"; then
+			printf 'enabled'
+		else
+			printf 'diverged'
+		fi
+	else
+		if mod_is_linked "$name"; then
+			printf 'orphan'
+		else
+			printf 'disabled'
+		fi
+	fi
 }
 
 mod_local_commit() {

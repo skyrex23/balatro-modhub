@@ -1,0 +1,25 @@
+version: "3"
+
+tasks:
+  default:
+    desc: List the available TUI tasks
+    cmds:
+      - task --list --taskfile {{.TASKFILE}}
+    silent: true
+
+  run:
+    desc: Open the TUI of the collection (task tui:run)
+    cmds:
+      - uv run --project tui balatro-modhub
+
+  test:
+    desc: Run the tests of the TUI
+    cmds:
+      - uv run --project tui --group dev ruff check tui
+      - uv run --project tui --group dev ruff format --check tui
+      - uv run --project tui --group dev pytest tui/tests
+
+  install:
+    desc: Install the TUI as a tool with uv (uv tool install ./tui)
+    cmds:
+      - uv tool install ./tui
