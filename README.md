@@ -46,6 +46,36 @@ it exits and would drop the change. The task refuses to run while Steam is runni
 
 Finally, `task run` launches the game.
 
+## TUI
+
+The collection can also be managed from a terminal interface, for the people who just want to play and browse the mods
+instead of reading the task list:
+
+```bash
+uv tool install ./tui
+balatro-modhub
+```
+
+Without installing it, from the repository:
+
+```bash
+task tui:run
+```
+
+The TUI does not reimplement the logic of the collection: it reads the JSON output of the scripts of this repository and
+calls them for the changes, so `task` is not needed. It looks for the collection in the current directory and its
+parents, or in `COLLECTION_ROOT`.
+
+| Key     | Action                                                     |
+| ------- | ---------------------------------------------------------- |
+| `/`     | Search                                                     |
+| `space` | Enable or disable the mod                                  |
+| `enter` | Details of the mod                                         |
+| `s`     | Apply the state of the manifest to the `Mods` folder       |
+| `d`     | Checks of the environment, with the action that fixes them |
+| `r`     | Reload                                                     |
+| `q`     | Quit                                                       |
+
 ## Layout
 
 ```
@@ -63,6 +93,11 @@ Finally, `task run` launches the game.
 │   ├── mods.sh           Mod management
 │   ├── steam.sh          Steam launch options
 │   └── steam/launch_options.py   Reads and writes localconfig.vdf
+├── tests/
+│   └── contract.sh       Contract tests of the structured output
+├── tui/
+│   ├── pyproject.toml    The TUI, as a package for uv
+│   └── src/balatro_modhub_tui/   The terminal interface
 ├── config/
 │   ├── balatro.env       Default configuration
 │   ├── balatro.local.env Local overrides (not versioned)
@@ -111,7 +146,7 @@ task doctor -- --json
 ```
 
 The result is a single JSON document on the standard output, and the human readable messages go to the standard error.
-It is a stable contract to read the state of the collection without parsing the tables.
+It is the contract that the TUI consumes, so the state of the collection can be read without parsing the tables.
 
 The state of a mod is one of:
 

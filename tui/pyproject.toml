@@ -1,0 +1,30 @@
+[project]
+name = "balatro-modhub-tui"
+version = "0.1.0"
+description = "TUI to browse and manage the Balatro Mod Hub collection"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["textual>=1.0"]
+
+[project.scripts]
+balatro-modhub = "balatro_modhub_tui.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.17.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/balatro_modhub_tui"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# The bindings of Textual are a class attribute by convention
+ignore = ["RUF012"]

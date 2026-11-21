@@ -7,6 +7,8 @@ includes:
     taskfile: ./taskfiles/loader.yaml
   steam:
     taskfile: ./taskfiles/steam.yaml
+  tui:
+    taskfile: ./taskfiles/tui.yaml
 
 tasks:
   default:
